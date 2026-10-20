@@ -38,7 +38,8 @@ export function IndiaMap() {
           const rad = active === r.city.id ? base * 1.25 : base;
           const top = r.rank === 1;
           const op = 0.35 + 0.6 * ((r.score - minS) / (maxS - minS || 1));
-          const left = r.city.id === "mumbai" || r.city.id === "pune";
+          const left = ["mumbai", "pune", "bengaluru"].includes(r.city.id);
+          const dy = r.city.id === "mumbai" ? -8 : r.city.id === "pune" ? 14 : 4;
           return (
             <g
               key={r.city.id}
@@ -59,7 +60,7 @@ export function IndiaMap() {
               />
               <text
                 x={left ? x - rad - 4 : x + rad + 4}
-                y={y + 4}
+                y={y + dy}
                 textAnchor={left ? "end" : "start"}
                 fontSize={13}
                 fontWeight={600}
