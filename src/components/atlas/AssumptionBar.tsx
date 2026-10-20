@@ -39,7 +39,7 @@ function Chip({ label, flash, children }: { label: string; flash: boolean; child
   return (
     <Popover>
       <PopoverTrigger asChild>
-        <button key={flash ? label + "f" : label} className={cn("rounded-full border bg-card px-3 py-1.5 text-[13px] transition-colors duration-150 hover:border-brand", flash && "flash")}>
+        <button className={cn("rounded-full border bg-card px-3 py-1.5 text-[13px] transition-colors duration-150 hover:border-brand", flash && "flash")}>
           {label}
         </button>
       </PopoverTrigger>
