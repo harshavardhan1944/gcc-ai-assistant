@@ -49,7 +49,6 @@ function Row({ r }: { r: RankedCity }) {
   const { hoverCity, setHoverCity, inputs } = useAdvisor();
   const c = r.city;
   const conflicts = conflictingFacts(c);
-  const conflict = [c.gccCount, c.primeRent, c.gccShare].some((f) => f?.conflict);
   return (
     <li
       onMouseEnter={() => setHoverCity(c.id)}
