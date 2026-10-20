@@ -46,11 +46,11 @@ export function Hero() {
           </div>
           <ScoreRing score={a.score} />
         </div>
-        <div className="grid grid-cols-1 gap-4 p-6 sm:grid-cols-3 md:pl-0">
+        <div className="grid grid-cols-1 gap-4 p-6 sm:grid-cols-3 md:grid-cols-2 md:pl-0 xl:grid-cols-3">
           <Stat label="Total cost / yr" value={formatCr(a.costCr)} codes={["F1", "R1"]} />
           <Stat label="Payroll / yr" value={formatCr(a.payrollCr)} codes={["F1"]} />
           <Stat label="Talent pool" value={`${a.city.professionalsM}M`} codes={["F1"]} />
-          <div className="sm:col-span-3">
+          <div className="sm:col-span-3 md:col-span-2 xl:col-span-3">
             <span className="inline-flex items-center gap-1.5 rounded-full bg-good-bg px-3 py-1 text-[13px] text-good">
               <ArrowDownRight size={16} aria-hidden />
               {delta > 0.05
@@ -87,8 +87,8 @@ function Stat({ label, value, codes }: { label: string; value: string; codes: ("
   return (
     <div>
       <p className="eyebrow text-muted-foreground">{label}</p>
-      <p className="mt-1 flex items-center">
-        <span className="num text-[30px] leading-tight">{value}</span>
+      <p className="mt-1 flex flex-wrap items-center">
+        <span className="num whitespace-nowrap text-[30px] leading-tight">{value}</span>
         <SourceTags codes={codes} />
       </p>
     </div>
