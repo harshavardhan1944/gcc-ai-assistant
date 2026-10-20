@@ -110,6 +110,7 @@ export function AdvisorProvider({ children }: { children: ReactNode }) {
   const [hoverCity, setHoverCity] = useState<string | null>(null);
   const ranked = useMemo(() => rankCities(inputs), [inputs]);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const genRef = useRef(0);
   const inputsRef = useRef(inputs);
   inputsRef.current = inputs;
 
@@ -127,18 +128,22 @@ export function AdvisorProvider({ children }: { children: ReactNode }) {
 
   const refreshExplanation = useCallback(async (i?: Inputs) => {
     const use = i ?? inputsRef.current;
+    const gen = genRef.current;
     setExplanation((e) => ({ ...e, loading: true }));
     try {
       const r = await explainRanking({ data: { inputs: use } });
+      if (gen !== genRef.current) return;
       setExplanation({ text: extractReply(r.text), ai: r.ok, loading: false, stale: false });
       if (!r.ok) setAiAvailable(false);
     } catch {
+      if (gen !== genRef.current) return;
       setExplanation({ text: templateSummary(rankCities(use)), ai: false, loading: false, stale: false });
       setAiAvailable(false);
     }
   }, []);
 
   const bootstrapNew = useCallback(async () => {
+    genRef.current += 1;
     const { id } = await startConversation();
     localStorage.setItem(STORAGE_KEY, id);
     setConversationId(id);
@@ -206,12 +211,16 @@ export function AdvisorProvider({ children }: { children: ReactNode }) {
   const send = useCallback(async (text: string) => {
     const t = text.trim();
     if (!t || sending) return;
+    const gen = genRef.current;
+    const id = conversationId;
     const userMsg: ChatMessage = { id: crypto.randomUUID(), role: "user", content: t };
     setMessages((m) => [...m, userMsg]);
     setSending(true);
     try {
-      if (!conversationId) throw new Error("no conversation");
-      const r = await sendTurn({ data: { id: conversationId, message: t, inputs: inputsRef.current } });
+      if (!id) throw new Error("no conversation");
+      const r = await sendTurn({ data: { id, message: t, inputs: inputsRef.current } });
+      // The conversation was reset while this reply was in flight: drop it.
+      if (gen !== genRef.current) return;
       if (!r.ok) {
         setAiAvailable(false);
         setMessages((m) => [...m, { id: crypto.randomUUID(), role: "assistant", content: extractReply(r.reply), error: true }]);
@@ -229,6 +238,7 @@ export function AdvisorProvider({ children }: { children: ReactNode }) {
       setMessages((m) => [...m, msg]);
     } catch (e) {
       console.error(e);
+      if (gen !== genRef.current) return;
       setAiAvailable(false);
       setMessages((m) => [
         ...m,
@@ -240,7 +250,7 @@ export function AdvisorProvider({ children }: { children: ReactNode }) {
         },
       ]);
     } finally {
-      setSending(false);
+      if (gen === genRef.current) setSending(false);
     }
   }, [conversationId, sending, applyInputs, refreshExplanation]);
 
@@ -255,6 +265,8 @@ export function AdvisorProvider({ children }: { children: ReactNode }) {
   const newConversation = useCallback(async () => {
     setReady(false);
     setCompare(null);
+    setMessages([]);
+    setSending(false);
     try {
       await bootstrapNew();
     } catch (e) {
