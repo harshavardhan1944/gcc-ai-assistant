@@ -4,7 +4,7 @@ import { SOURCES } from "@/data/cities";
 export function Footer() {
   return (
     <footer className="mt-10 bg-sunken">
-      <div className="mx-auto grid max-w-[1360px] gap-10 px-4 py-10 sm:px-6 md:grid-cols-2">
+      <div className="mx-auto grid max-w-[1360px] gap-10 px-4 pt-10 pb-24 sm:px-6 md:grid-cols-2 min-[1100px]:pb-10">
         <div>
           <h2 className="text-[22px]">How the score works</h2>
           <ol className="mt-4 list-decimal space-y-2 pl-5 text-[13px] leading-relaxed">
@@ -29,7 +29,7 @@ export function Footer() {
           </ul>
         </div>
         <p className="text-[12px] text-muted-foreground md:col-span-2">
-          Prototype · Payroll and office costs are illustrative estimates, not quotes. Incentives are shown but not scored, because state terms are not yet comparable.
+          Prototype · Payroll and office costs are illustrative estimates, not quotes. Rents are 2025 averages and may understate current costs. Incentives are shown but not scored, because state terms are not yet comparable.
         </p>
       </div>
     </footer>

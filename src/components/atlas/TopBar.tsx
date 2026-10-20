@@ -56,7 +56,7 @@ export function TopBar() {
       <div className="mx-auto flex h-full max-w-[1360px] items-center gap-4 px-4 sm:px-6">
         <Logo />
         <div className="hidden flex-1 justify-center gap-2 md:flex">
-          {["6 metros", "Data as of Aug 2026", aiAvailable ? "AI on" : "AI off"].map((c) => (
+          {["6 metros", "Pay data Aug 2026 · Rents 2025", aiAvailable ? "AI on" : "AI off"].map((c) => (
             <span key={c} className="rounded-full border px-3 py-1 text-[12px] text-muted-foreground">
               {c}
             </span>
