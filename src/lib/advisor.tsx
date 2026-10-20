@@ -174,7 +174,7 @@ export function AdvisorProvider({ children }: { children: ReactNode }) {
                 return {
                   id: m.id,
                   role: m.role as "user" | "assistant",
-                  content: m.content,
+                  content: extractReply(m.content),
                   followUps: meta.followUps,
                   action:
                     meta.prevInputs && m.inputs
@@ -218,7 +218,7 @@ export function AdvisorProvider({ children }: { children: ReactNode }) {
         return;
       }
       setAiAvailable(true);
-      const msg: ChatMessage = { id: crypto.randomUUID(), role: "assistant", content: r.reply, followUps: r.followUps };
+      const msg: ChatMessage = { id: crypto.randomUUID(), role: "assistant", content: extractReply(r.reply), followUps: r.followUps };
       if (r.newInputs) {
         msg.action = { label: diffInputs(r.prevInputs, r.newInputs), prevInputs: r.prevInputs };
         applyInputs(r.newInputs, false);
