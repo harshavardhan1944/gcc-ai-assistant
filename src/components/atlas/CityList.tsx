@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { AlertTriangle, ChevronDown } from "lucide-react";
 import { useAdvisor } from "@/lib/advisor";
-import { formatCr, type RankedCity } from "@/lib/score";
+import { formatCr, type RankedCity, conflictingFacts, incentiveExplanation } from "@/lib/score";
 import type { Fact } from "@/data/cities";
 import { SourceTag, SourceTags } from "./SourceTag";
 import { StatusPill } from "./StatusPill";
@@ -45,8 +45,10 @@ function FactRow({ label, fact }: { label: string; fact: Fact }) {
 
 function Row({ r }: { r: RankedCity }) {
   const [open, setOpen] = useState(false);
-  const { hoverCity, setHoverCity } = useAdvisor();
+  const [explain, setExplain] = useState<"conflict" | "incentive" | null>(null);
+  const { hoverCity, setHoverCity, inputs } = useAdvisor();
   const c = r.city;
+  const conflicts = conflictingFacts(c);
   const conflict = [c.gccCount, c.primeRent, c.gccShare].some((f) => f?.conflict);
   return (
     <li
@@ -72,8 +74,20 @@ function Row({ r }: { r: RankedCity }) {
         </dl>
       </div>
       <div className="mt-3 flex flex-wrap items-center gap-2 md:pl-[56px]">
-        <StatusPill tone={r.incentive.tone} label={r.incentive.label} />
-        {conflict && <StatusPill tone="warning" label="Sources disagree" />}
+        <StatusPill
+          tone={r.incentive.tone}
+          label={r.incentive.label}
+          expanded={explain === "incentive"}
+          onClick={() => setExplain((e) => (e === "incentive" ? null : "incentive"))}
+        />
+        {conflicts.length > 0 && (
+          <StatusPill
+            tone="warning"
+            label="Sources disagree"
+            expanded={explain === "conflict"}
+            onClick={() => setExplain((e) => (e === "conflict" ? null : "conflict"))}
+          />
+        )}
         <button
           onClick={() => setOpen((o) => !o)}
           aria-expanded={open}
@@ -83,6 +97,27 @@ function Row({ r }: { r: RankedCity }) {
           <ChevronDown size={16} className={cn("transition-transform duration-150", open && "rotate-180")} aria-hidden />
         </button>
       </div>
+      {explain === "conflict" && (
+        <div className="mt-2 rounded-[10px] bg-warn-bg px-4 py-3 text-[13px] md:ml-[56px]">
+          <p className="font-medium text-warn">Why "Sources disagree"</p>
+          <p className="mt-1 text-muted-foreground">
+            Two of the reports we cite give different numbers for the same fact, so we show both instead of picking one:
+          </p>
+          <ul className="mt-1 list-disc space-y-1 pl-4">
+            {conflicts.map(({ label, fact }) => (
+              <li key={label}>
+                <span className="font-medium">{label}:</span> {fact?.text}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+      {explain === "incentive" && (
+        <div className="mt-2 rounded-[10px] bg-sunken px-4 py-3 text-[13px] md:ml-[56px]">
+          <p className="font-medium">About "{r.incentive.label}"</p>
+          <p className="mt-1 text-muted-foreground">{incentiveExplanation(c, inputs)}</p>
+        </div>
+      )}
       {open && (
         <dl className="mt-3 grid gap-x-8 rounded-[10px] bg-sunken px-4 py-2 sm:grid-cols-2 md:ml-[56px]">
           <FactRow label="Software engineer median CTC" fact={{ text: `₹${c.seMedian} lakh`, sources: ["F1", "F2"] }} />
