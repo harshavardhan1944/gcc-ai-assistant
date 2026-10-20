@@ -214,7 +214,7 @@ export function AdvisorProvider({ children }: { children: ReactNode }) {
       const r = await sendTurn({ data: { id: conversationId, message: t, inputs: inputsRef.current } });
       if (!r.ok) {
         setAiAvailable(false);
-        setMessages((m) => [...m, { id: crypto.randomUUID(), role: "assistant", content: r.reply, error: true }]);
+        setMessages((m) => [...m, { id: crypto.randomUUID(), role: "assistant", content: extractReply(r.reply), error: true }]);
         return;
       }
       setAiAvailable(true);
