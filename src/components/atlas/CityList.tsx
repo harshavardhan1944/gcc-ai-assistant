@@ -43,6 +43,22 @@ function FactRow({ label, fact }: { label: string; fact: Fact }) {
   );
 }
 
+function ConflictText({ fact }: { fact?: Fact }) {
+  if (!fact) return null;
+  const parts = fact.text.replace(/:?\s*sources disagree\s*$/i, "").split(/\s+vs\s+/);
+  return (
+    <>
+      {parts.map((p, i) => (
+        <span key={i}>
+          {i > 0 && <span className="text-muted-foreground"> vs </span>}
+          {p}
+          {fact.sources[i] && <SourceTag code={fact.sources[i]} />}
+        </span>
+      ))}
+    </>
+  );
+}
+
 function Row({ r }: { r: RankedCity }) {
   const [open, setOpen] = useState(false);
   const [explain, setExplain] = useState<"conflict" | "incentive" | null>(null);
@@ -54,13 +70,13 @@ function Row({ r }: { r: RankedCity }) {
       onMouseEnter={() => setHoverCity(c.id)}
       onMouseLeave={() => setHoverCity(null)}
       className={cn(
-        "border-b py-4 pl-4 pr-2 transition-colors duration-150 last:border-0",
+        "border-b py-4 pl-5 pr-2 transition-colors duration-150 last:border-0",
         r.rank === 1 && "border-l-[3px] border-l-brand",
         hoverCity === c.id && "bg-background/60",
       )}
     >
-      <div className="grid items-center gap-x-6 gap-y-3 md:grid-cols-[32px_1.2fr_1fr_1.6fr]">
-        <span className="num text-[17px] text-muted-foreground">{String(r.rank).padStart(2, "0")}</span>
+      <div className="grid items-center gap-x-6 gap-y-3 md:grid-cols-[40px_1.2fr_1fr_1.6fr]">
+        <span className="num block min-w-[40px] whitespace-nowrap overflow-visible text-[17px] text-muted-foreground">{String(r.rank).padStart(2, "0")}</span>
         <div>
           <h3 className="text-[22px] leading-tight">{c.name}</h3>
           <p className="text-[13px] text-muted-foreground">{c.state}</p>
@@ -105,7 +121,7 @@ function Row({ r }: { r: RankedCity }) {
           <ul className="mt-1 list-disc space-y-1 pl-4">
             {conflicts.map(({ label, fact }) => (
               <li key={label}>
-                <span className="font-medium">{label}:</span> {fact?.text}
+                <span className="font-medium">{label}:</span> <ConflictText fact={fact} />
               </li>
             ))}
           </ul>
@@ -136,7 +152,8 @@ function Row({ r }: { r: RankedCity }) {
 }
 
 export function CityList() {
-  const { ranked } = useAdvisor();
+  const { ranked, inputs } = useAdvisor();
+  const w = inputs.weights;
   return (
     <section className="rounded-[14px] border bg-card" aria-labelledby="ranked-title">
       <div className="flex flex-wrap items-center justify-between gap-2 border-b px-4 py-3">
@@ -147,6 +164,9 @@ export function CityList() {
           <span className="inline-flex items-center gap-1"><span className="h-2.5 w-2.5 rounded-full bg-good" />Ecosystem</span>
         </span>
       </div>
+      <p className="border-b px-5 py-2 text-[12px] text-muted-foreground">
+        Based on: <span className="num">{inputs.headcount}</span> people · <span className="num">{Math.round(inputs.seniorShare * 100)}%</span> senior · weights cost <span className="num">{w.cost}</span>, talent <span className="num">{w.talent}</span>, ecosystem <span className="num">{w.ecosystem}</span>
+      </p>
       <ol>{ranked.map((r) => <Row key={r.city.id} r={r} />)}</ol>
     </section>
   );
