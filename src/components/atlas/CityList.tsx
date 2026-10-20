@@ -76,10 +76,12 @@ function Row({ r }: { r: RankedCity }) {
       )}
     >
       <div className="grid items-center gap-x-6 gap-y-3 md:grid-cols-[40px_1.2fr_1fr_1.6fr]">
-        <span className="num block min-w-[40px] whitespace-nowrap overflow-visible text-[17px] text-muted-foreground">{String(r.rank).padStart(2, "0")}</span>
-        <div>
-          <h3 className="text-[22px] leading-tight">{c.name}</h3>
-          <p className="text-[13px] text-muted-foreground">{c.state}</p>
+        <div className="flex min-w-0 items-baseline gap-3 md:contents">
+          <span className="num w-10 shrink-0 whitespace-nowrap text-[17px] text-muted-foreground">{String(r.rank).padStart(2, "0")}</span>
+          <div className="min-w-0">
+            <h3 className="text-[22px] leading-tight">{c.name}</h3>
+            <p className="text-[13px] text-muted-foreground">{c.state}</p>
+          </div>
         </div>
         <ScoreBar r={r} />
         <dl className="grid grid-cols-3 gap-3 text-[13px]">
