@@ -28,6 +28,20 @@ export interface ChatMessage {
 }
 
 const STORAGE_KEY = "gcc-atlas-conversation";
+
+/** If the AI wrapped its answer in a JSON object (e.g. {"reply": "..."}), unwrap the plain reply. */
+function extractReply(t: string): string {
+  const s = (t ?? "").trim();
+  if (!s.startsWith("{")) return s;
+  try {
+    const j = JSON.parse(s) as { reply?: unknown; text?: unknown };
+    if (typeof j.reply === "string" && j.reply.trim()) return j.reply.trim();
+    if (typeof j.text === "string" && j.text.trim()) return j.text.trim();
+  } catch {
+    // not valid JSON — show as-is
+  }
+  return s;
+}
 const DEFAULT_FOLLOWUPS = [
   "Why is Chennai ahead of Mumbai?",
   "What if we hire 250 people?",
@@ -116,7 +130,7 @@ export function AdvisorProvider({ children }: { children: ReactNode }) {
     setExplanation((e) => ({ ...e, loading: true }));
     try {
       const r = await explainRanking({ data: { inputs: use } });
-      setExplanation({ text: r.text, ai: r.ok, loading: false, stale: false });
+      setExplanation({ text: extractReply(r.text), ai: r.ok, loading: false, stale: false });
       if (!r.ok) setAiAvailable(false);
     } catch {
       setExplanation({ text: templateSummary(rankCities(use)), ai: false, loading: false, stale: false });
@@ -135,7 +149,7 @@ export function AdvisorProvider({ children }: { children: ReactNode }) {
     let text = templateGreeting(rankCities(DEFAULT_INPUTS));
     try {
       const g = await greet();
-      if (g.ok) text = g.text;
+      if (g.ok) text = extractReply(g.text);
       else setAiAvailable(false);
     } catch {
       setAiAvailable(false);
