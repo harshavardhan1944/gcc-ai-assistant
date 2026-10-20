@@ -11,7 +11,7 @@ const STARTERS = [
   "Compare Bengaluru and Hyderabad",
 ];
 
-export function AssistantPanel({ className }: { className?: string }) {
+export function AssistantPanel({ className, inputId = "chat-input" }: { className?: string; inputId?: string }) {
   const { messages, send, sending, undo, newConversation, ready } = useAdvisor();
   const [text, setText] = useState("");
   const scrollRef = useRef<HTMLDivElement>(null);
@@ -129,9 +129,9 @@ export function AssistantPanel({ className }: { className?: string }) {
         className="border-t px-4 pb-3 pt-3"
       >
         <div className="flex items-end gap-2 rounded-[14px] border bg-background p-2 focus-within:border-brand">
-          <label htmlFor="chat-input" className="sr-only">Ask the assistant</label>
+          <label htmlFor={inputId} className="sr-only">Ask the assistant</label>
           <textarea
-            id="chat-input"
+            id={inputId}
             ref={inputRef}
             value={text}
             onChange={(e) => setText(e.target.value)}

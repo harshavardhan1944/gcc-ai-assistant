@@ -76,7 +76,7 @@ function Shell() {
       <Sheet open={chatOpen} onOpenChange={setChatOpen}>
         <SheetContent className="w-full p-0 sm:max-w-[440px]">
           <SheetTitle className="sr-only">GCC assistant</SheetTitle>
-          <AssistantPanel className="h-full" />
+          <AssistantPanel className="h-full" inputId="chat-input-sheet" />
         </SheetContent>
       </Sheet>
       <CompareModal />
