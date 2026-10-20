@@ -1,4 +1,4 @@
-import { CITIES, type City } from "@/data/cities";
+import { CITIES, type City, type Fact } from "@/data/cities";
 
 export type ParentStatus = "yes" | "no" | "unsure";
 
@@ -66,6 +66,26 @@ export function dataConfidence(c: City) {
   const conflicts = [c.primeRent, c.gccCount, c.gccShare].filter((f) => f?.conflict).length;
   const label = `${sourced} of 6 facts sourced${conflicts ? ` · ${conflicts} conflict${conflicts > 1 ? "s" : ""}` : ""}`;
   return { sourced, total: 6, conflicts, label };
+}
+
+const CONFLICT_FACT_LABELS: Record<string, string> = {
+  gccCount: "GCC count",
+  primeRent: "Prime office rent (₹/sq ft/month)",
+  gccShare: "GCC share of office absorption, H1 2026",
+};
+
+export function conflictingFacts(c: City): { label: string; fact: Fact }[] {
+  return (["gccCount", "primeRent", "gccShare"] as const)
+    .map((k) => ({ label: CONFLICT_FACT_LABELS[k], fact: c[k] }))
+    .filter((x): x is { label: string; fact: Fact } => !!x.fact?.conflict);
+}
+
+export function incentiveExplanation(c: City, i: Inputs): string {
+  if (c.id === "chennai") {
+    const parent = i.parentGlobal2000 === "yes" ? "yes" : i.parentGlobal2000 === "no" ? "no" : "not set yet";
+    return `Tamil Nadu's payroll subsidy (to March 2027) applies only if your parent is a Forbes Global 2000 or Fortune 1000 company and you commit at least 200 direct jobs. Your assumptions: Global 2000 / Fortune 1000 parent — ${parent}; planned jobs — ${i.headcount}. Incentives are shown but not scored, because state terms are not yet comparable.`;
+  }
+  return `${c.incentive.text} Incentives are shown but not scored, because state terms are not yet comparable.`;
 }
 
 export function clampInputs(i: Inputs): Inputs {

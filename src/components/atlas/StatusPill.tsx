@@ -10,12 +10,34 @@ const tones: Record<Tone, string> = {
 };
 const icons = { good: CheckCircle2, warning: AlertTriangle, bad: XCircle, neutral: Info };
 
-export function StatusPill({ tone, label, className }: { tone: Tone; label: string; className?: string }) {
+interface StatusPillProps {
+  tone: Tone;
+  label: string;
+  className?: string;
+  onClick?: () => void;
+  expanded?: boolean;
+}
+
+export function StatusPill({ tone, label, className, onClick, expanded }: StatusPillProps) {
   const Icon = icons[tone];
+  const cls = cn(
+    "inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[12px] font-medium",
+    tones[tone],
+    onClick && "cursor-pointer transition-opacity hover:opacity-75",
+    className,
+  );
+  if (!onClick) {
+    return (
+      <span className={cls}>
+        <Icon size={14} aria-hidden />
+        {label}
+      </span>
+    );
+  }
   return (
-    <span className={cn("inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[12px] font-medium", tones[tone], className)}>
+    <button type="button" onClick={onClick} aria-expanded={expanded} className={cls}>
       <Icon size={14} aria-hidden />
       {label}
-    </span>
+    </button>
   );
 }

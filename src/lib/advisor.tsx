@@ -28,6 +28,20 @@ export interface ChatMessage {
 }
 
 const STORAGE_KEY = "gcc-atlas-conversation";
+
+/** If the AI wrapped its answer in a JSON object (e.g. {"reply": "..."}), unwrap the plain reply. */
+function extractReply(t: string): string {
+  const s = (t ?? "").trim();
+  if (!s.startsWith("{")) return s;
+  try {
+    const j = JSON.parse(s) as { reply?: unknown; text?: unknown };
+    if (typeof j.reply === "string" && j.reply.trim()) return j.reply.trim();
+    if (typeof j.text === "string" && j.text.trim()) return j.text.trim();
+  } catch {
+    // not valid JSON — show as-is
+  }
+  return s;
+}
 const DEFAULT_FOLLOWUPS = [
   "Why is Chennai ahead of Mumbai?",
   "What if we hire 250 people?",
@@ -116,7 +130,7 @@ export function AdvisorProvider({ children }: { children: ReactNode }) {
     setExplanation((e) => ({ ...e, loading: true }));
     try {
       const r = await explainRanking({ data: { inputs: use } });
-      setExplanation({ text: r.text, ai: r.ok, loading: false, stale: false });
+      setExplanation({ text: extractReply(r.text), ai: r.ok, loading: false, stale: false });
       if (!r.ok) setAiAvailable(false);
     } catch {
       setExplanation({ text: templateSummary(rankCities(use)), ai: false, loading: false, stale: false });
@@ -135,7 +149,7 @@ export function AdvisorProvider({ children }: { children: ReactNode }) {
     let text = templateGreeting(rankCities(DEFAULT_INPUTS));
     try {
       const g = await greet();
-      if (g.ok) text = g.text;
+      if (g.ok) text = extractReply(g.text);
       else setAiAvailable(false);
     } catch {
       setAiAvailable(false);
@@ -160,7 +174,7 @@ export function AdvisorProvider({ children }: { children: ReactNode }) {
                 return {
                   id: m.id,
                   role: m.role as "user" | "assistant",
-                  content: m.content,
+                  content: extractReply(m.content),
                   followUps: meta.followUps,
                   action:
                     meta.prevInputs && m.inputs
@@ -200,11 +214,11 @@ export function AdvisorProvider({ children }: { children: ReactNode }) {
       const r = await sendTurn({ data: { id: conversationId, message: t, inputs: inputsRef.current } });
       if (!r.ok) {
         setAiAvailable(false);
-        setMessages((m) => [...m, { id: crypto.randomUUID(), role: "assistant", content: r.reply, error: true }]);
+        setMessages((m) => [...m, { id: crypto.randomUUID(), role: "assistant", content: extractReply(r.reply), error: true }]);
         return;
       }
       setAiAvailable(true);
-      const msg: ChatMessage = { id: crypto.randomUUID(), role: "assistant", content: r.reply, followUps: r.followUps };
+      const msg: ChatMessage = { id: crypto.randomUUID(), role: "assistant", content: extractReply(r.reply), followUps: r.followUps };
       if (r.newInputs) {
         msg.action = { label: diffInputs(r.prevInputs, r.newInputs), prevInputs: r.prevInputs };
         applyInputs(r.newInputs, false);

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DEFAULT_INPUTS, rankCities, formatCr, incentiveStatus } from "./score";
+import { DEFAULT_INPUTS, rankCities, formatCr, incentiveStatus, conflictingFacts, incentiveExplanation } from "./score";
 import { CITIES } from "@/data/cities";
 
 describe("rankCities", () => {
@@ -29,5 +29,18 @@ describe("rankCities", () => {
     expect(incentiveStatus(ch, { ...DEFAULT_INPUTS, headcount: 250, parentGlobal2000: "no" }).tone).toBe("bad");
     expect(incentiveStatus(ch, { ...DEFAULT_INPUTS, headcount: 150, parentGlobal2000: "yes" }).label).toBe("Not eligible: under 200 jobs");
     expect(incentiveStatus(ch, { ...DEFAULT_INPUTS, headcount: 250, parentGlobal2000: "unsure" }).label).toBe("Check parent eligibility");
+  });
+  it("flags exactly the conflicting facts and explains them", () => {
+    const blr = CITIES.find((c) => c.id === "bengaluru")!;
+    const hyd = CITIES.find((c) => c.id === "hyderabad")!;
+    expect(conflictingFacts(blr).map((x) => x.label)).toEqual(["GCC count"]);
+    expect(conflictingFacts(hyd).map((x) => x.label)).toEqual(["GCC count"]);
+    expect(conflictingFacts(CITIES.find((c) => c.id === "chennai")!)).toEqual([]);
+  });
+  it("explains the Chennai incentive with the current assumptions", () => {
+    const ch = CITIES.find((c) => c.id === "chennai")!;
+    expect(incentiveExplanation(ch, { ...DEFAULT_INPUTS, headcount: 250, parentGlobal2000: "yes" })).toContain("planned jobs — 250");
+    expect(incentiveExplanation(ch, { ...DEFAULT_INPUTS, headcount: 250, parentGlobal2000: "no" })).toContain("parent — no");
+    expect(incentiveExplanation(CITIES.find((c) => c.id === "bengaluru")!, DEFAULT_INPUTS)).toContain("not scored");
   });
 });
